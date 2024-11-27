@@ -1,112 +1,51 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                             QLabel, QTableWidget, QTableWidgetItem,
-                             QPushButton, QLineEdit, QComboBox, QTextEdit)
-from datetime import datetime
+from PyQt6.QtWidgets import QMainWindow, QTabWidget, QWidget, QApplication
+from models import Product, Client, Order
+from tabs import Tabs
 
-class Product:
-    def __init__(self, name):
-        self.name = name
-
-class Client:
-    def __init__(self, name):
-        self.name = name
-
-class Order:
-    STATUSES = ["Черновик", "Согласован клиентом", "Принят в производство", "Выполнен"]
-
-    def __init__(self, client, product, quantity, delivery_date, additional_info):
-        self.registration_date = datetime.now()
-        self.client = client
-        self.product = product
-        self.quantity = quantity
-        self.delivery_date = delivery_date
-        self.additional_info = additional_info
-        self.status = "Черновик"
-
-    def can_confirm(self):
-        return self.status == "Черновик" and self.client and self.product and self.quantity > 0
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Лесозавод №10 Белка")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1000, 700)
 
-        self.products = [Product("Сырые пиломатериалы"), Product("Сухие пиломатериалы"),
-                         Product("Рейк"), Product("Клееный брус"), Product("Фанера"), Product("Доска пола")]
-        self.clients = [Client("Клиент 1"), Client("Клиент 2")]
-        self.orders = []
+        self.products = [
+            Product("Сырые пиломатериалы"),
+            Product("Сухие пиломатериалы"),
+            Product("Рейки"),
+            Product("Клееный брус"),
+            Product("Фанера"),
+            Product("Доска пола"),
+        ]
+        self.clients = [Client("ООО \'НикоТурс Тольятти\'", "nikotuors"), Client("Клиент 2", "+89998887766")]
+        self.orders = [
+            Order(self.clients[0], self.products[0], 50, "2024-12-01", "Срочно"),
+            Order(self.clients[1], self.products[1], 30, "2024-12-10", "Требуется доставка"),
+        ]
+
+        for order in self.orders:
+            order.status = "Согласован клиентом"
 
         self.init_ui()
 
     def init_ui(self):
-        self.central_widget = QWidget()
+        self.central_widget = QTabWidget()
         self.setCentralWidget(self.central_widget)
-        layout = QVBoxLayout(self.central_widget)
 
-        self.order_table = QTableWidget()
-        self.order_table.setColumnCount(6)
-        self.order_table.setHorizontalHeaderLabels(
-            ["Дата регистрации", "Клиент", "Лесопродукция", "Количество", "Дата доставки", "Статус"])
-        layout.addWidget(self.order_table)
+        self.commercial_tab = QWidget()
+        self.production_tab = QWidget()
+        self.technologist_tab = QWidget()
 
-        self.client_input = QComboBox()
-        for client in self.clients:
-            self.client_input.addItem(client.name)
-        layout.addWidget(self.client_input)
+        self.central_widget.addTab(self.commercial_tab, "Коммерческая служба")
+        self.central_widget.addTab(self.production_tab, "Служба производства")
+        self.central_widget.addTab(self.technologist_tab, "Служба технолога")
 
-        self.product_input = QComboBox()
-        for product in self.products:
-            self.product_input.addItem(product.name)
-        layout.addWidget(self.product_input)
+        tabs = Tabs(self)
+        tabs.setup_commercial_tab(self.commercial_tab, self.clients, self.products, self.orders)
+        tabs.setup_production_tab(self.production_tab, self.orders)
+        tabs.setup_technologist_tab(self.technologist_tab, self.products)
 
-        self.quantity_input = QLineEdit()
-        self.quantity_input.setPlaceholderText("Количество")
-        layout.addWidget(self.quantity_input)
-
-        self.delivery_date_input = QLineEdit()
-        self.delivery_date_input.setPlaceholderText("Дата доставки (YYYY-MM-DD)")
-        layout.addWidget(self.delivery_date_input)
-
-        self.additional_info_input = QTextEdit()
-        self.additional_info_input.setPlaceholderText("Дополнительная информация")
-        layout.addWidget(self.additional_info_input)
-
-        self.confirm_button = QPushButton("Согласовать заказ")
-        self.confirm_button.clicked.connect(self.confirm_order)
-        layout.addWidget(self.confirm_button)
-
-    def confirm_order(self):
-        client = self.clients[self.client_input.currentIndex()]
-        product = self.products[self.product_input.currentIndex()]
-        quantity = int(self.quantity_input.text())
-        delivery_date = self.delivery_date_input.text()
-        additional_info = self.additional_info_input.toPlainText()
-
-        order = Order(client, product, quantity, delivery_date, additional_info)
-        if order.can_confirm():
-            order.status = "Согласован клиентом"
-            self.orders.append(order)
-            self.update_order_table()
-
-    def update_order_table(self):
-        self.order_table.setRowCount(len(self.orders))
-        for row, order in enumerate(self.orders):
-            self.order_table.setItem(row, 0, QTableWidgetItem(order.registration_date.strftime("%Y-%m-%d")))
-            self.order_table.setItem(row, 1, QTableWidgetItem(order.client.name))
-            self.order_table.setItem(row, 2, QTableWidgetItem(order.product.name))
-            self.order_table.setItem(row, 3, QTableWidgetItem(str(order.quantity)))
-            self.order_table.setItem(row, 4, QTableWidgetItem(order.delivery_date))
-            self.order_table.setItem(row, 5, QTableWidgetItem(order.status))
-
-            # Цветовое выделение в зависимости от статуса
-            if order.status == "Согласован клиентом":
-                self.order_table.item(row, 5).setBackgroundColor((255, 165, 0))  # Оранжевый
-            elif order.status == "Принят в производство":
-                self.order_table.item(row, 5).setBackgroundColor((255, 255, 0))  # Желтый
-            elif order.status == "Выполнен":
-                self.order_table.item(row, 5).setBackgroundColor((0, 255, 0))  # Зеленый
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
