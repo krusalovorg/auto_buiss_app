@@ -1,6 +1,10 @@
+import datetime
+
+from PyQt6.QtCore import QDateTime
 from PyQt6.QtWidgets import QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QTextEdit, \
-    QPushButton, QAbstractScrollArea, QHeaderView, QTabWidget, QWidget
+    QPushButton, QAbstractScrollArea, QHeaderView, QTabWidget, QWidget, QDateEdit
 from PyQt6.QtGui import QColor
+from PyQt6.uic.properties import QtWidgets, QtCore
 
 from dialogs import ProductEditDialog, OrderDetailsDialog
 from models import Order, Product, Client
@@ -74,8 +78,14 @@ class Tabs:
         self.quantity_input.setPlaceholderText("Количество")
         orders_layout.addWidget(self.quantity_input)
 
-        self.delivery_date_input = QLineEdit()
-        self.delivery_date_input.setPlaceholderText("Дата доставки (YYYY-MM-DD)")
+        # self.delivery_date_input = QLineEdit()
+        # self.delivery_date_input.setPlaceholderText("Дата доставки (YYYY-MM-DD)")
+        # orders_layout.addWidget(self.delivery_date_input)
+
+        self.delivery_date_input = QDateEdit()
+        self.delivery_date_input.setCalendarPopup(True)
+        self.delivery_date_input.setDateTime(QDateTime.currentDateTime())
+        self.delivery_date_input.setWindowTitle("Дата доставки")
         orders_layout.addWidget(self.delivery_date_input)
 
         self.additional_info_input = QTextEdit()
@@ -137,7 +147,7 @@ class Tabs:
         self.client_input.setCurrentText(order.client.name)
         self.product_input.setCurrentText(order.product.name)
         self.quantity_input.setText(str(order.quantity))
-        self.delivery_date_input.setText(order.delivery_date)
+        self.delivery_date_input.setDateTime(datetime.datetime.strptime(order.delivery_date, "%d.%m.%y"))
         self.additional_info_input.setText(order.additional_info)
         self.editing_order_id = row
 
@@ -249,7 +259,7 @@ class Tabs:
     def update_order_table(self, orders):
         self.order_table.setRowCount(len(orders))
         for row, order in enumerate(orders):
-            self.order_table.setItem(row, 0, QTableWidgetItem(order.registration_date.strftime("%Y-%m-%d")))
+            self.order_table.setItem(row, 0, QTableWidgetItem(order.registration_date))
             self.order_table.setItem(row, 1, QTableWidgetItem(order.client.name))
             self.order_table.setItem(row, 2, QTableWidgetItem(order.product.name))
             self.order_table.setItem(row, 3, QTableWidgetItem(str(order.quantity)))

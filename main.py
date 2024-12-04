@@ -20,8 +20,8 @@ class MainWindow(QMainWindow):
         ]
         self.clients = [Client("ООО \'НикоТурс Тольятти\'", "nikotuors"), Client("Клиент 2", "+89998887766")]
         self.orders = [
-            Order(self.clients[0], self.products[0], 50, "2024-12-01", "Срочно"),
-            Order(self.clients[1], self.products[1], 30, "2024-12-10", "Требуется доставка"),
+            Order(self.clients[0], self.products[0], 50, "01.12.2024", "Срочно"),
+            Order(self.clients[1], self.products[1], 30, "10.12.2024", "Требуется доставка"),
         ]
 
         for order in self.orders:

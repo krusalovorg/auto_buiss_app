@@ -28,7 +28,7 @@ class Order:
     STATUSES = ["Черновик", "Согласован клиентом", "Принят в производство", "Выполнен"]
 
     def __init__(self, client: Client, product, quantity, delivery_date, additional_info):
-        self.registration_date = datetime.now()
+        self.registration_date = datetime.now().strftime("%d.%m.%Y")
         self.id = time.time()
         self.client = client
         self.product = product
